@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Knowledge Retrieval</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; line-height: 1.6; color: #333; }
+        .header { text-align: center; border-bottom: 2px solid #007bff; padding-bottom: 20px; margin-bottom: 30px; }
+        .section { background: #ffffff; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e0e0e0; }
+        h1 { color: #007bff; margin: 0; font-size: 2.2rem; }
+        p.subtitle { color: #666; margin-top: 5px; font-style: italic; }
+        input[type="text"] { width: 75%; padding: 12px; border-radius: 6px; border: 1px solid #ccc; outline: none; transition: border 0.3s; }
+        input[type="text"]:focus { border-color: #007bff; }
+        button { padding: 12px 24px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 6px; font-weight: bold; transition: background 0.3s; }
+        button:hover { background: #0056b3; }
+        #output { white-space: pre-wrap; background: #f8f9fa; padding: 20px; border-left: 5px solid #007bff; min-height: 60px; margin-top: 15px; border-radius: 4px; font-size: 1rem; }
+        .status-tag { font-size: 0.8rem; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Intelligent Knowledge Retrieval & Organization</h1>
+        <p class="subtitle">Turning static documents into searchable intelligence.</p>
+    </div>
+
+    <div class="section">
+        <span class="status-tag" style="color: #28a745;">Step 1: Data Ingestion</span>
+        <p>Upload a PDF or PPTX to index your knowledge base.</p>
+        <input type="file" id="fileInput">
+        <button onclick="upload()">Index Document</button>
+    </div>
+
+    <div class="section">
+        <span class="status-tag" style="color: #007bff;">Step 2: Semantic Query</span>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="question" placeholder="Ask a question about your uploaded data...">
+            <button onclick="ask()">Retrieve</button>
+        </div>
+        <div id="output">System ready. Awaiting document upload...</div>
+    </div>
+
+<script>
+    const API_BASE = "http://127.0.0.1:5000";
+
+    async function upload() {
+        const fileInput = document.getElementById("fileInput");
+        const output = document.getElementById("output");
+
+        if (fileInput.files.length === 0) {
+            alert("Please select a file first.");
+            return;
+        }
+
+        output.innerText = "Indexing content... This involves text extraction and vector embedding.";
+        
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+
+        try {
+            const res = await fetch(`${API_BASE}/upload`, {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.json();
+            if (data.error) {
+                output.innerHTML = `<span style="color:red;">Error: ${data.error}</span>`;
+            } else {
+                output.innerHTML = `<span style="color:green;">Success: ${data.message}</span>`;
+            }
+        } catch (err) {
+            output.innerText = "Connection failed. Please ensure the Python backend is running on port 5000.";
+        }
+    }
+
+    async function ask() {
+        const questionInput = document.getElementById("question");
+        const output = document.getElementById("output");
+        
+        if (!questionInput.value) {
+            alert("Please enter a query.");
+            return;
+        }
+
+        output.innerText = "Searching high-dimensional vector space...";
+
+        try {
+            const res = await fetch(`${API_BASE}/ask`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question: questionInput.value })
+            });
+
+            const data = await res.json();
+            output.innerText = data.answer || data.error || "No response from system.";
+
+        } catch (err) {
+            output.innerText = "Retrieval error. Check server logs.";
+        }
+    }
+</script>
+
+</body>
+</html>
